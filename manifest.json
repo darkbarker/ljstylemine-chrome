@@ -1,0 +1,24 @@
+{
+  "manifest_version": 2,
+  "name": "LJ Style Mine",
+  "version": "1.0",
+
+  "description": "LiveJournal style mine.",
+  "icons" : {
+    "16": "icon-16.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
+  
+  "page_action": {
+    "default_icon": "icon-on.png",
+    "default_title": "LiveJournal style mine."
+  },
+  
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "permissions": [
+    "tabs"
+  ]
+}
