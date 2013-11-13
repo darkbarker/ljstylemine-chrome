@@ -3,7 +3,8 @@
   "name": "LJ Style Mine",
   "version": "1.0",
 
-  "description": "LiveJournal style mine.",
+  "default_locale": "en",
+  "description": "__MSG_extDescription__",
   "icons" : {
     "16": "icon-16.png",
     "48": "icon-48.png",
@@ -19,6 +20,6 @@
     "scripts": ["background.js"]
   },
   "permissions": [
-    "tabs"
+    "tabs", "history"
   ]
 }

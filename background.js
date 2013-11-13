@@ -1,9 +1,10 @@
-
 /*
- * Чтобы комментарии всегда были в простом стиле:
- * http://www.livejournal.com/customize/options.bml
+ * http://www.livejournal.com/manage/settings/?cat=display
+ * http://www.livejournal.com/support/faq/175.html
  * Disable customized comment pages for your journal
  */
+
+var pageActionOn = true;
 
 function _hasParamValue( url, parampair )
 {
@@ -13,11 +14,7 @@ function _hasParamValue( url, parampair )
 
 function _removeParam( url, paraname )
 {
-	//	http://stackoverflow.com/questions/1842681/regular-expression-to-remove-one-parameter-from-query-string
-	//	/&foo(\=[^&]*)?(?=&|$)|^foo(\=[^&]*)?(&|$)/
-	//re = "&"+paraname+"(\\=[^&]*)?(?=&|$)|^"+paraname+"(\\=[^&]*)?(&|$)";
-	// удаляем параметр и предыдущий перед ним & если он есть
-	//return url.replace(new RegExp(re,'g'),'');
+	// http://stackoverflow.com/questions/1842681/regular-expression-to-remove-one-parameter-from-query-string
 	var urlparts = url.split('?');
 	if (urlparts.length>=2)
 	{
@@ -51,16 +48,28 @@ function _addParamValue( url, parampair )
 	return url;
 };
 
+function showPageActionIcon(tab)
+{
+	if( pageActionOn )
+	{
+		// иконка включено
+		chrome.pageAction.setIcon({tabId: tab.id, path: 'icon-on.png'});
+	}
+	else
+	{
+		// иконка выключено
+		chrome.pageAction.setIcon({tabId: tab.id, path: 'icon-off.png'});	
+	}
+	// показываем иконку в любом случае
+	chrome.pageAction.show(tab.id);
+};
+
 function onTabsUpdated(tabId, changeInfo, tab)
 {
-	//chrome.extension.getBackgroundPage().console.log("tabId="+tabId);
 	// alert("tabId="+tabId+" | changeInfo.status="+changeInfo.status+" | changeInfo.pinned="+changeInfo.pinned+" | changeInfo.url="+changeInfo.url);
-	// tabId=529 | changeInfo.status=loading | changeInfo.pinned=undefined | changeInfo.url=undefined
-	// tabId=529 | changeInfo.status=complete | changeInfo.pinned=undefined | changeInfo.url=undefined
-	// сразу проверяем надо ли что-нибудь делать TODO использовать changeInfo?
+	// check do something (changeInfo: loading/complete)
 	if ( changeInfo.status=="loading" && tab.url.indexOf('livejournal.com') > -1 )
 	{
-		//alert("tabId="+tabId+" | changeInfo.status="+changeInfo.status+" | changeInfo.pinned="+changeInfo.pinned+" | changeInfo.url="+changeInfo.url);
 		// style=mine&
 		// format=light&
 		// http://XXXX.livejournal.com/YYYYYY.html
@@ -68,32 +77,68 @@ function onTabsUpdated(tabId, changeInfo, tab)
 		re = /http\:\/\/.+\.livejournal\.com\/\d+\.html|http\:\/\/users\.livejournal\.com\/.+\/\d+\.html/
 		if( tab.url.match(re) )
 		{
-			if( !_hasParamValue( tab.url, 'style=mine' ) )
+			if( pageActionOn )
 			{
-				var oldurl = tab.url;
-				tab.url = _removeParam( tab.url, 'style' );
-				tab.url = _removeParam( tab.url, 'format' );
-				tab.url = _addParamValue( tab.url, 'style=mine' );
-				// обновляемъ адрес
-				chrome.tabs.update(tab.id,{url: tab.url});
-				// удаляем из истории TODO
-				//alert(oldurl);
-				//chrome.history.deleteUrl({url: oldurl}, function() {alert('deleteUrl');});
-				//alert(tab.url);
+				if( !_hasParamValue( tab.url, 'style=mine' ) )
+				{
+					tab.url = _removeParam( tab.url, 'style' );
+					tab.url = _removeParam( tab.url, 'format' );
+					tab.url = _addParamValue( tab.url, 'style=mine' );
+					// обновляемъ адрес
+					chrome.tabs.update(tab.id,{url: tab.url});
+				}
 			}
 			// показываем иконку в любом случае
-			chrome.pageAction.show(tabId);
+			showPageActionIcon(tab);
 		}
 	}
-  //chrome.pageAction.setIcon.
-  //chrome.pageAction.setTitle.
-  //chrome.pageAction.setPopup.
-  //
 };
 
+function onPageActionIconClick(tab)
+{
+	if( pageActionOn )
+	{
+		pageActionOn = false;
+		if( _hasParamValue( tab.url, 'style=mine' ) )
+		{
+			tab.url = _removeParam( tab.url, 'style' );
+			tab.url = _removeParam( tab.url, 'format' );
+			// обновляемъ адрес
+			chrome.tabs.update(tab.id,{url: tab.url});
+		}
+	}
+	else
+	{
+		pageActionOn = true;
+		if( !_hasParamValue( tab.url, 'style=mine' ) )
+		{
+			tab.url = _removeParam( tab.url, 'style' );
+			tab.url = _removeParam( tab.url, 'format' );
+			tab.url = _addParamValue( tab.url, 'style=mine' );
+			// обновляемъ адрес
+			chrome.tabs.update(tab.id,{url: tab.url});
+		}
+	}
+	// показываем иконку в любом случае
+	showPageActionIcon(tab);
+};
+
+function onAddVisitedHistory(result)
+{
+	// удаляем из истории TODO
+	//alert(oldurl);
+	//chrome.history.deleteUrl({url: oldurl}, function() {alert('deleteUrl');});
+	//alert(tab.url);
+	//result.url;
+	//chrome.history.deleteRange({startTime: result.lastVisitTime-1, endTime: result.lastVisitTime+1}, function() {alert('deleteRange');});
+};
 
 // tabs updated
 chrome.tabs.onUpdated.addListener(onTabsUpdated);
+// page action icon click
+chrome.pageAction.onClicked.addListener(onPageActionIconClick);
+// add visited url
+chrome.history.onVisited.addListener();
 
 
 var testnum = 0;
@@ -101,7 +146,7 @@ function _test( a, b )
 {
 	++testnum;
 	if(a!==b)alert(a+"\n"+b+"\ntest "+testnum);
-}
+};
 
 function _runtests()
 {
