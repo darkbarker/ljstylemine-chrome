@@ -3,7 +3,7 @@
   "name": "LJ Style Mine",
   "version": "1.0",
 
-  "default_locale": "en",
+  "default_locale": "ru",
   "description": "__MSG_extDescription__",
   "icons" : {
     "16": "icon-16.png",

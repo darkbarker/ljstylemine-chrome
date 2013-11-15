@@ -1,6 +1,6 @@
 {
   "extDescription": {
-    "message": "LiveJournal style mine.",
+    "message": "Добавляет style=mine к страницам постов в живом журнале. Позволяет временно отключить возможность иконкой адресной строки.",
     "description": "Extension description"
   }
 }

@@ -5,6 +5,7 @@
  */
 
 var pageActionOn = true;
+var deleteHistory = true;
 
 function _hasParamValue( url, parampair )
 {
@@ -130,7 +131,7 @@ function onAddVisitedHistory(result)
 	//chrome.history.deleteUrl({url: oldurl}, function() {alert('deleteUrl');});
 	//alert(tab.url);
 	//result.url;
-	//chrome.history.deleteRange({startTime: result.lastVisitTime-1, endTime: result.lastVisitTime+1}, function() {alert('deleteRange');});
+	//chrome.history.deleteRange({startTime: result.lastVisitTime-0.001, endTime: result.lastVisitTime+0.001}, function() {alert('deleteRange');});
 };
 
 // tabs updated
@@ -138,7 +139,7 @@ chrome.tabs.onUpdated.addListener(onTabsUpdated);
 // page action icon click
 chrome.pageAction.onClicked.addListener(onPageActionIconClick);
 // add visited url
-chrome.history.onVisited.addListener();
+chrome.history.onVisited.addListener(onAddVisitedHistory);
 
 
 var testnum = 0;
