@@ -12,14 +12,14 @@ function _hasParamValue( url, parampair )
 	return url.search(re) != -1;
 };
 
-function _removeParam( url, paraname )
+function _removeParam( url, paramname )
 {
 	// http://stackoverflow.com/questions/1842681/regular-expression-to-remove-one-parameter-from-query-string
 	var urlparts = url.split('?');
 	if (urlparts.length>=2)
 	{
 		var right = urlparts[1];
-		re = "&"+paraname+"(\\=[^&#]*)?(?=&|$|#)|^"+paraname+"(\\=[^&#]*)?(&|$|#)";
+		re = "&"+paramname+"(\\=[^&#]*)?(?=&|$|#)|^"+paramname+"(\\=[^&#]*)?(&|$|#)";
 		right = right.replace(new RegExp(re,'g'),'');
 		url= urlparts[0]+( (right.length>0) ? ('?'+right) : '' );
 	}
@@ -64,17 +64,41 @@ function showPageActionIcon(tabId)
 	chrome.pageAction.show(tabId);
 };
 
+function modifyUrl(url)
+{
+	url = _removeParam( url, 'style' );
+	url = _removeParam( url, 'format' );
+	if( localStorage["need"] == "stylemine" )
+		url = _addParamValue( url, 'style=mine' );
+	else
+		url = _addParamValue( url, 'format=light' );
+	return url;
+};
+
+function isNeedModify(url)
+{
+	return (!_hasParamValue( url, 'style=mine' ) && localStorage["need"] == "stylemine") ||
+			(!_hasParamValue( url, 'format=light' ) && localStorage["need"] == "formatlight");
+};
+
+function isLivejournalCommentUrl(url)
+{
+	// style=mine&
+	// format=light&
+	// http://XXXX.livejournal.com/YYYYYY.html
+	// http://users.livejournal.com/XXXX/YYYYYY.html
+	// XXXX: (a-z)+(0-9)+(_) | (A-Z)+(-)
+	re = /^http\:\/\/[a-zA-Z0-9_\-]+\.livejournal\.com\/\d+\.html|^http\:\/\/users\.livejournal\.com\/[a-zA-Z0-9_\-]+\/\d+\.html/
+	return( url.match(re) );
+};
+
 function onTabsUpdated(tabId, changeInfo, tab)
 {
+	// alert("tabId="+tabId+" | changeInfo.status="+changeInfo.status+" | changeInfo.pinned="+changeInfo.pinned+" | changeInfo.url="+changeInfo.url);
 	// check do something (changeInfo: loading/complete)
 	if ( changeInfo.status=="loading" && tab.url.indexOf('livejournal.com') > -1 )
 	{
-		// style=mine&
-		// format=light&
-		// http://XXXX.livejournal.com/YYYYYY.html
-		// http://users.livejournal.com/XXXX/YYYYYY.html
-		re = /^http\:\/\/.+\.livejournal\.com\/\d+\.html$|^http\:\/\/users\.livejournal\.com\/.+\/\d+\.html$/
-		if( tab.url.match(re) )
+		if( isLivejournalCommentUrl(tab.url) )
 		{
 			// показываем иконку в любом случае
 			showPageActionIcon(tab.id);
@@ -87,7 +111,7 @@ function onPageActionIconClick(tab)
 	if( pageActionOn )
 	{
 		pageActionOn = false;
-		if( _hasParamValue( tab.url, 'style=mine' ) )
+		if( _hasParamValue( tab.url, 'style=mine' ) || _hasParamValue( tab.url, 'format=light' ) )
 		{
 			tab.url = _removeParam( tab.url, 'style' );
 			tab.url = _removeParam( tab.url, 'format' );
@@ -98,11 +122,9 @@ function onPageActionIconClick(tab)
 	else
 	{
 		pageActionOn = true;
-		if( !_hasParamValue( tab.url, 'style=mine' ) )
+		if( isNeedModify(tab.url) )
 		{
-			tab.url = _removeParam( tab.url, 'style' );
-			tab.url = _removeParam( tab.url, 'format' );
-			tab.url = _addParamValue( tab.url, 'style=mine' );
+			tab.url = modifyUrl( tab.url );
 			// обновляемъ адрес
 			chrome.tabs.update(tab.id,{url: tab.url});
 		}
@@ -111,27 +133,17 @@ function onPageActionIconClick(tab)
 
 function onBeforeNavigate(details)
 {
-    //if(details.url=="http://www.google.com/") 
-    //    chrome.tabs.update(details.tabId, {url:"http://jigsaw.w3.org/css-validator/validator?uri="+details.url});
-	// alert("tabId="+tabId+" | changeInfo.status="+changeInfo.status+" | changeInfo.pinned="+changeInfo.pinned+" | changeInfo.url="+changeInfo.url);
 	// check do something (changeInfo: loading/complete)
 	var url = details.url;
 	if ( url.indexOf('livejournal.com') > -1 )
 	{
-		// style=mine&
-		// format=light&
-		// http://XXXX.livejournal.com/YYYYYY.html
-		// http://users.livejournal.com/XXXX/YYYYYY.html
-		re = /^http\:\/\/.+\.livejournal\.com\/\d+\.html$|^http\:\/\/users\.livejournal\.com\/.+\/\d+\.html$/
-		if( url.match(re) )
+		if( isLivejournalCommentUrl(url) )
 		{
 			if( pageActionOn )
 			{
-				if( !_hasParamValue( url, 'style=mine' ) )
+				if( isNeedModify( url ) )
 				{
-					url = _removeParam( url, 'style' );
-					url = _removeParam( url, 'format' );
-					url = _addParamValue( url, 'style=mine' );
+					url = modifyUrl(url);
 					// обновляемъ адрес
 					chrome.tabs.update(details.tabId,{url: url});
 				}
@@ -145,7 +157,7 @@ chrome.tabs.onUpdated.addListener(onTabsUpdated);
 // page action icon click
 chrome.pageAction.onClicked.addListener(onPageActionIconClick);
 // on before navigate
-chrome.webNavigation.onBeforeNavigate.addListener(onBeforeNavigate);
+chrome.webNavigation.onBeforeNavigate.addListener(onBeforeNavigate, { url: [{ hostContains: 'livejournal.com' }] });
 
 
 var testnum = 0;

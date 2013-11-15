@@ -1,6 +1,6 @@
 {
   "extDescription": {
-    "message": "Adds style=mine to the pages of posts on LiveJournal. Allows you to temporarily disable the functionality the address bar icon.",
+    "message": "Adds style=mine (or format=light) to the pages of posts on LiveJournal. Allows you to temporarily disable the functionality the address bar icon.",
     "description": "Extension description"
   }
 }
