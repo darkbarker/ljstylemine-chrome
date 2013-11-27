@@ -20,6 +20,6 @@
     "scripts": ["background.js"]
   },
   "permissions": [
-    "tabs", "history"
+    "tabs", "webNavigation"
   ]
 }

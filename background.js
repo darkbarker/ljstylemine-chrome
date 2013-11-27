@@ -5,7 +5,6 @@
  */
 
 var pageActionOn = true;
-var deleteHistory = true;
 
 function _hasParamValue( url, parampair )
 {
@@ -49,25 +48,24 @@ function _addParamValue( url, parampair )
 	return url;
 };
 
-function showPageActionIcon(tab)
+function showPageActionIcon(tabId)
 {
 	if( pageActionOn )
 	{
 		// иконка включено
-		chrome.pageAction.setIcon({tabId: tab.id, path: 'icon-on.png'});
+		chrome.pageAction.setIcon({tabId: tabId, path: 'icon-on.png'});
 	}
 	else
 	{
 		// иконка выключено
-		chrome.pageAction.setIcon({tabId: tab.id, path: 'icon-off.png'});	
+		chrome.pageAction.setIcon({tabId: tabId, path: 'icon-off.png'});	
 	}
 	// показываем иконку в любом случае
-	chrome.pageAction.show(tab.id);
+	chrome.pageAction.show(tabId);
 };
 
 function onTabsUpdated(tabId, changeInfo, tab)
 {
-	// alert("tabId="+tabId+" | changeInfo.status="+changeInfo.status+" | changeInfo.pinned="+changeInfo.pinned+" | changeInfo.url="+changeInfo.url);
 	// check do something (changeInfo: loading/complete)
 	if ( changeInfo.status=="loading" && tab.url.indexOf('livejournal.com') > -1 )
 	{
@@ -78,19 +76,8 @@ function onTabsUpdated(tabId, changeInfo, tab)
 		re = /http\:\/\/.+\.livejournal\.com\/\d+\.html|http\:\/\/users\.livejournal\.com\/.+\/\d+\.html/
 		if( tab.url.match(re) )
 		{
-			if( pageActionOn )
-			{
-				if( !_hasParamValue( tab.url, 'style=mine' ) )
-				{
-					tab.url = _removeParam( tab.url, 'style' );
-					tab.url = _removeParam( tab.url, 'format' );
-					tab.url = _addParamValue( tab.url, 'style=mine' );
-					// обновляемъ адрес
-					chrome.tabs.update(tab.id,{url: tab.url});
-				}
-			}
 			// показываем иконку в любом случае
-			showPageActionIcon(tab);
+			showPageActionIcon(tab.id);
 		}
 	}
 };
@@ -120,26 +107,45 @@ function onPageActionIconClick(tab)
 			chrome.tabs.update(tab.id,{url: tab.url});
 		}
 	}
-	// показываем иконку в любом случае
-	showPageActionIcon(tab);
 };
 
-function onAddVisitedHistory(result)
+function onBeforeNavigate(details)
 {
-	// удаляем из истории TODO
-	//alert(oldurl);
-	//chrome.history.deleteUrl({url: oldurl}, function() {alert('deleteUrl');});
-	//alert(tab.url);
-	//result.url;
-	//chrome.history.deleteRange({startTime: result.lastVisitTime-0.001, endTime: result.lastVisitTime+0.001}, function() {alert('deleteRange');});
+    //if(details.url=="http://www.google.com/") 
+    //    chrome.tabs.update(details.tabId, {url:"http://jigsaw.w3.org/css-validator/validator?uri="+details.url});
+	// alert("tabId="+tabId+" | changeInfo.status="+changeInfo.status+" | changeInfo.pinned="+changeInfo.pinned+" | changeInfo.url="+changeInfo.url);
+	// check do something (changeInfo: loading/complete)
+	var url = details.url;
+	if ( url.indexOf('livejournal.com') > -1 )
+	{
+		// style=mine&
+		// format=light&
+		// http://XXXX.livejournal.com/YYYYYY.html
+		// http://users.livejournal.com/XXXX/YYYYYY.html
+		re = /http\:\/\/.+\.livejournal\.com\/\d+\.html|http\:\/\/users\.livejournal\.com\/.+\/\d+\.html/
+		if( url.match(re) )
+		{
+			if( pageActionOn )
+			{
+				if( !_hasParamValue( url, 'style=mine' ) )
+				{
+					url = _removeParam( url, 'style' );
+					url = _removeParam( url, 'format' );
+					url = _addParamValue( url, 'style=mine' );
+					// обновляемъ адрес
+					chrome.tabs.update(details.tabId,{url: url});
+				}
+			}
+		}
+	}
 };
 
 // tabs updated
 chrome.tabs.onUpdated.addListener(onTabsUpdated);
 // page action icon click
 chrome.pageAction.onClicked.addListener(onPageActionIconClick);
-// add visited url
-chrome.history.onVisited.addListener(onAddVisitedHistory);
+// on before navigate
+chrome.webNavigation.onBeforeNavigate.addListener(onBeforeNavigate);
 
 
 var testnum = 0;
