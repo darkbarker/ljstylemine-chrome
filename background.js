@@ -73,7 +73,7 @@ function onTabsUpdated(tabId, changeInfo, tab)
 		// format=light&
 		// http://XXXX.livejournal.com/YYYYYY.html
 		// http://users.livejournal.com/XXXX/YYYYYY.html
-		re = /http\:\/\/.+\.livejournal\.com\/\d+\.html|http\:\/\/users\.livejournal\.com\/.+\/\d+\.html/
+		re = /^http\:\/\/.+\.livejournal\.com\/\d+\.html$|^http\:\/\/users\.livejournal\.com\/.+\/\d+\.html$/
 		if( tab.url.match(re) )
 		{
 			// показываем иконку в любом случае
@@ -122,7 +122,7 @@ function onBeforeNavigate(details)
 		// format=light&
 		// http://XXXX.livejournal.com/YYYYYY.html
 		// http://users.livejournal.com/XXXX/YYYYYY.html
-		re = /http\:\/\/.+\.livejournal\.com\/\d+\.html|http\:\/\/users\.livejournal\.com\/.+\/\d+\.html/
+		re = /^http\:\/\/.+\.livejournal\.com\/\d+\.html$|^http\:\/\/users\.livejournal\.com\/.+\/\d+\.html$/
 		if( url.match(re) )
 		{
 			if( pageActionOn )
