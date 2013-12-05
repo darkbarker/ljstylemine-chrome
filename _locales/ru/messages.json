@@ -1,6 +1,6 @@
 {
   "extDescription": {
-    "message": "Добавляет style=mine (или format=light) к страницам постов в живом журнале. Позволяет временно отключить возможность иконкой адресной строки.",
+    "message": "Добавляет style=mine (или format=light) к страницам постов в живом журнале.",
     "description": "Extension description"
   }
 }
