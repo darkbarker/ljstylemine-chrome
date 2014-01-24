@@ -4,7 +4,7 @@
  * Disable customized comment pages for your journal
  */
 
-var pageActionOn = true;
+var pageActionOn = (localStorage["defaultdo"]==="true");
 
 function _hasParamValue( url, parampair )
 {
